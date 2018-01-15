@@ -1,0 +1,127 @@
+%for taking video as input from webcam and setting its colour as rgb
+
+x=videoinput('winvideo',1);
+preview(x);
+set(x,'ReturnedColorspace','rgb')
+
+%for processing the image
+
+for h=1:10
+pause(5);
+IM1=getsnapshot(x);
+figure(1);subplot(1,2,1);imshow(IM1);
+IM2=rgb2gray(IM1);
+IM3=IM2>30;
+IM4=bwareaopen(IM3,10000);
+IM5=imfill(IM4,'holes');
+
+%for calculating centroid of the hand
+
+s1 = regionprops(IM5,'Centroid');
+centroids = cat(1, s1.Centroid);
+
+%for ploting the centroid of the hand
+
+figure(8);
+imshow(IM5);
+title('Centroid is found');
+hold(imgca,'on')
+plot(imgca,centroids(1), centroids(2), 'r*') 
+hold(imgca,'off')
+
+%for finding the point on hand which is at maximum distance from centroid
+
+cenx=centroids(1);
+ceny=centroids(2);
+[rows,cols]=size(IM5);
+for i=1:floor(rows/2)
+    for j=1:cols
+       dist = hypot((i-ceny), (j-cenx));
+            if (dist>=count) && (IM5(i,j)==1)
+                count=dist;
+                l=i;
+                m=j;
+            end
+     end
+end
+disp(count);
+
+%for plotting the point
+
+hold on
+plot(m,l,'ro');
+hold off
+
+%for calculating midpoint of the centroid and the above calculated hand
+
+l
+m
+impixelinfo
+count
+mid1=(cenx+m)/2;
+mid2=(ceny+l)/2;
+
+%for plotting the midpoint
+
+hold on
+plot(mid1,mid2,'r*');
+hold off
+
+%for calculating number of variations in line of midpoint
+
+mid1
+i = floor(mid2);
+ct=0;
+for j = 2:cols
+    if (IM5(i,j-1)==0) && (IM5(i,j)==1)
+        while IM5(i,j)>=0 && j<cols
+            j = j+1;
+end
+        ct=ct+1;
+    end
+end
+
+%for calculating number of variations in line of centroid
+
+i = floor(ceny)
+for j = floor(cenx):cols
+    if (IM5(i,j-1)==0) && (IM5(i,j)==1)
+        while IM5(i,j)>=0 && j<cols
+            j = j+1;
+        end
+        ct=ct+1;
+    end
+end
+
+%for displaying the number of fingers
+
+disp(ct)
+
+%to define a audio signal for the corresponding count of fingers
+
+if ct==1
+    item='Food';
+    
+end
+if ct==2
+    item='Water';
+    
+end
+if ct==3
+    item='Ice Cream';
+end
+
+if ct==4
+    item='Lollipop';
+end
+if ct==5
+    item='Sleep';
+end
+
+%For producing the audio signal :
+
+NET.addAssembly('System.Speech');
+obj = System.Speech.Synthesis.SpeechSynthesizer;
+obj.Volume = 100;
+Speak(obj, item);
+end
